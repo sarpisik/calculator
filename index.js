@@ -76,7 +76,8 @@ class Calculator {
     this.memory;
     this.input = '';
     this.operations = {
-      '+': this.getSum
+      '+': this.getSum,
+      '-': this.getSubtraction
     };
     this.inputScreen = new InputScreen();
     this.outputScreen = new OutputScreen();
@@ -86,17 +87,17 @@ class Calculator {
     container.appendChild(this.inputScreen.element);
     container.appendChild(this.outputScreen.element);
   }
-  handleOperation(operatorType) {
+  handleOperation(nextAction) {
     if (this.memory === undefined) {
-      this.finishOperation();
+      this.finishOperation(this.input, nextAction);
     } else {
-      const operator = this.operations[operatorType].bind(this);
+      const operator = this.operations[this.memory.action].bind(this);
       const result = operator(Number(this.input));
-      this.finishOperation(result);
+      this.finishOperation(result, nextAction);
     }
   }
-  finishOperation(result = this.input) {
-    this.updateMemory(result);
+  finishOperation(result, nextAction) {
+    this.updateMemory(result, nextAction);
     this.updateOutputScreen(result);
     this.resetInput();
   }
@@ -104,8 +105,12 @@ class Calculator {
     this.input += input;
     this.inputScreen.updateScreen(this.input);
   }
-  updateMemory(data) {
-    this.memory = Number(data);
+  updateMemory(input, action) {
+    const data = Number(input);
+    this.memory = {
+      data,
+      action
+    };
   }
   updateOutputScreen(data) {
     this.outputScreen.updateScreen(data);
@@ -115,38 +120,19 @@ class Calculator {
     this.inputScreen.updateScreen(this.input);
   }
   getSum(data) {
-    return this.memory + data;
+    return this.memory.data + data;
+  }
+  getSubtraction(data) {
+    return this.memory.data - data;
   }
 }
 const calculator = new Calculator();
-function handleCalculation(operator) {
-  if (memory === undefined) {
-    updateMemory(input);
-    newEls[0].updateScreen(input);
-  }
-
-  const operationHandler = operations[operator];
-  const result = operationHandler(memory, input);
-  updateMemory(result);
-  newEls[0].updateScreen(result);
-  console.log(result);
-}
-function updateMemory(data = 0) {
-  memory = data;
-  resetInput();
-}
-function getSum(memory, input) {
-  return memory + input;
-}
-function resetInput() {
-  input = 0;
-  newEls[1].updateScreen(input);
-}
 const newEls = [
   new NumericButton(1),
   new NumericButton(2),
   new NumericButton(3),
-  new OperatorButton('+')
+  new OperatorButton('+'),
+  new OperatorButton('-')
 ];
 newEls.forEach(function(el, i) {
   container.appendChild(el);
