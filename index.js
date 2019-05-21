@@ -22,24 +22,21 @@ class Container extends InitializeElement {
   constructor(classes) {
     super('div', classes);
   }
+
+  updateScreen(text) {
+    this.element.innerText = text;
+  }
 }
 class OutputScreen extends Container {
   constructor() {
     super('output-screen');
-  }
-
-  updateScreen(text) {
-    this.element.innerText = text;
+    this.updateScreen(0);
   }
 }
 class InputScreen extends Container {
   constructor() {
     super('input-screen');
     this.updateScreen(0);
-  }
-
-  updateScreen(text) {
-    this.element.innerText = text;
   }
 }
 class Button extends InitializeElement {
