@@ -13,24 +13,28 @@ class InitializeElement {
   createElement(type) {
     this.element = document.createElement(type);
   }
-}
-class Screen extends InitializeElement {
-  constructor(screenType) {
-    super('div', `screen ${screenType}`);
+
+  setParent(parent) {
+    parent.appendChild(this.element);
   }
 }
-class OutputScreen extends Screen {
+class Container extends InitializeElement {
+  constructor(classes) {
+    super('div', classes);
+  }
+}
+class OutputScreen extends Container {
   constructor() {
-    super('output');
+    super('output-screen');
   }
 
   updateScreen(text) {
     this.element.innerText = text;
   }
 }
-class InputScreen extends Screen {
+class InputScreen extends Container {
   constructor() {
-    super('input');
+    super('input-screen');
     this.updateScreen(0);
   }
 
@@ -49,7 +53,6 @@ class NumericButton extends Button {
   constructor(value) {
     super(value, 'numeric');
     this.element.addEventListener('click', this.onClick.bind(this));
-    return this.element;
   }
 
   onClick() {
@@ -61,16 +64,28 @@ class OperatorButton extends Button {
     super(operator, 'operator');
     this.operator = operator;
     this.element.addEventListener('click', this.onClick.bind(this));
-    return this.element;
   }
 
   onClick() {
-    // this.operator;
     calculator.handleOperation(this.operator);
   }
 }
-const container = document.getElementById('main');
+class RemoveButton extends Button {
+  constructor() {
+    super('AC', 'numeric');
+    this.removeType = 'ac';
+    this.element.addEventListener('click', this.onClick.bind(this));
+  }
 
+  onClick() {
+    this.removeType === 'ac' ? calculator.clearAll() : calculator.clearEntry();
+  }
+
+  toggleRemoveType(type = 'ac') {
+    this.removeType = type;
+    this.element.innerText = type.toUpperCase();
+  }
+}
 class Calculator {
   constructor() {
     this.input = '';
@@ -81,13 +96,43 @@ class Calculator {
       x: this.getMultiply,
       '=': this.getResult
     };
+    this.container = document.getElementById('main');
+    this.screensContainer = new Container('screens');
+    this.screensContainer.setParent(this.container);
+    this.buttonsContainer = new Container('buttons');
+    this.buttonsContainer.setParent(this.container);
+
     this.inputScreen = new InputScreen();
     this.outputScreen = new OutputScreen();
-    this.renderDom();
+    this.removeButton = new RemoveButton();
+
+    this.screens = [this.inputScreen, this.outputScreen];
+    this.buttons = [
+      new OperatorButton('+'),
+      new OperatorButton('-'),
+      new OperatorButton('x'),
+      new OperatorButton('÷'),
+      new OperatorButton('='),
+      new NumericButton(0),
+      new NumericButton(1),
+      new NumericButton(2),
+      new NumericButton(3),
+      new NumericButton(4),
+      new NumericButton(5),
+      new NumericButton(6),
+      new NumericButton(7),
+      new NumericButton(8),
+      new NumericButton(9),
+      new NumericButton('.'),
+      this.removeButton
+    ];
+    this.renderDom(this.screens, this.screensContainer.element);
+    this.renderDom(this.buttons, this.buttonsContainer.element);
   }
-  renderDom() {
-    container.appendChild(this.inputScreen.element);
-    container.appendChild(this.outputScreen.element);
+  renderDom(children, parent) {
+    children.forEach(function({ element }) {
+      parent.appendChild(element);
+    });
   }
   updateDom(result) {
     this.updateOutputScreen(result);
@@ -101,6 +146,7 @@ class Calculator {
         // Create new memory.
         this.initOperation(inputNumber || 0, action);
         break;
+
       // If this is repeat of 'equal operator'...
       case !this.memory.action && action === '=':
         // Use the last operator and input to calculate.
@@ -110,6 +156,7 @@ class Calculator {
           null
         );
         break;
+
       // If the last operator was 'equal operator'...
       case !this.memory.action:
         // Remove the last operator because this is not a repeat operation.
@@ -117,6 +164,7 @@ class Calculator {
         // Save the new operator to use on calculate in next operation.
         this.memory.action = action;
         break;
+
       // If this is 'equal operator'...
       case action === '=':
         // Save the last operator and last input in case repeating the 'equal operation'
@@ -128,6 +176,8 @@ class Calculator {
           inputNumber || this.memory.data,
           null
         );
+        break;
+
       // The default calculate operation.
       default:
         this.handleCalculate(
@@ -189,16 +239,3 @@ class Calculator {
   }
 }
 const calculator = new Calculator();
-const newEls = [
-  new NumericButton(1),
-  new NumericButton(2),
-  new NumericButton(3),
-  new OperatorButton('+'),
-  new OperatorButton('-'),
-  new OperatorButton('÷'),
-  new OperatorButton('x'),
-  new OperatorButton('=')
-];
-newEls.forEach(function(el, i) {
-  container.appendChild(el);
-});
