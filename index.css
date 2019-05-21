@@ -122,3 +122,18 @@ body {
   max-width: 15em;
   overflow: hidden;
 }
+
+.screens {
+  background-color: #222222;
+  color: #fff;
+  padding: 0.5em 0.75em;
+  text-align: right;
+}
+
+.input-screen {
+  font-size: 1.714285714em;
+}
+
+.output-screen {
+  border-top: 1px solid #fff;
+}
