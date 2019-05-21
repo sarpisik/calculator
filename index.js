@@ -189,11 +189,15 @@ class Calculator {
     this.createMemory(inputNumber, action);
     this.updateDom(inputNumber);
   }
+  // Memory
   createMemory(data, action) {
     this.memory = {
       data,
       action
     };
+  }
+  updateMemory(property, value) {
+    this.memory[property] = value;
   }
   handleCalculate(action, secondValue, nextAction) {
     const operator = this.operations[action].bind(this);
@@ -206,19 +210,47 @@ class Calculator {
     this.updateDom(result);
   }
   addInput(input) {
-    this.input += input;
-    this.inputScreen.updateScreen(this.input);
+    const initialInput = !this.input;
+    switch (true) {
+      case input === '.' && initialInput:
+        this.input = '0' + input;
+        break;
+
+      case input === '.' && this.input.includes('.'):
+        null;
+        break;
+
+      default:
+        this.input += input;
+        break;
+    }
+    // Toggle 'AC' button to 'CE'
+    this.toggleRemoveType('ce');
+    this.updateInputScreen(this.input);
   }
-  updateMemory(property, value) {
-    this.memory[property] = value;
+  updateInputScreen(data) {
+    this.inputScreen.updateScreen(data);
   }
   updateOutputScreen(data) {
     this.outputScreen.updateScreen(data);
   }
+  toggleRemoveType(type) {
+    this.removeButton.toggleRemoveType(type);
+  }
+  clearEntry() {
+    this.resetInput();
+  }
+  clearAll() {
+    this.memory = null;
+    this.resetInput();
+    this.updateOutputScreen(0);
+  }
   resetInput() {
     this.input = '';
-    this.inputScreen.updateScreen(0);
+    this.toggleRemoveType('ac');
+    this.updateInputScreen(0);
   }
+  // Math Operations
   getSum(data) {
     return this.memory.data + data;
   }
