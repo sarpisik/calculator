@@ -201,7 +201,8 @@ class Calculator {
   }
   handleCalculate(action, secondValue, nextAction) {
     const operator = this.operations[action].bind(this);
-    const result = operator(secondValue);
+
+    const result = Math.round(operator(secondValue) * 100) / 100;
     this.finishOperation(result, nextAction);
   }
   finishOperation(result, nextAction) {

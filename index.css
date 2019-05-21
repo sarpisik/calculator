@@ -119,7 +119,7 @@ body {
   box-shadow: 0 0 40px 0px rgba(0, 0, 0, 0.15);
   margin-left: auto;
   margin-right: auto;
-  min-width: 90vmin;
+  width: 90vmin;
   max-width: 13em;
   overflow: hidden;
 }
@@ -137,6 +137,11 @@ body {
 
 .output-screen {
   border-top: 1px solid #fff;
+}
+
+.input-screen,
+.output-screen {
+  overflow: hidden;
 }
 
 .buttons {
@@ -193,5 +198,12 @@ button[value='='] {
   }
   .btn {
     padding: 0.5em 1.25em;
+  }
+}
+
+@media only screen and (orientation: landscape) {
+  #main {
+    min-width: 90vmin;
+    width: inherit;
   }
 }
