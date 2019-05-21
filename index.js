@@ -95,34 +95,52 @@ class Calculator {
   }
   handleOperation(action) {
     const inputNumber = parseFloat(this.input);
-    if (!this.memory) {
-      this.createMemory(inputNumber || 0, action);
-      this.updateDom(inputNumber || 0);
-    } else if (!this.memory.action) {
-      if (action === '=') {
-        const result = this.handleCalculate(
+    switch (true) {
+      // If this is initial operation...
+      case !this.memory:
+        // Create new memory.
+        this.initOperation(inputNumber || 0, action);
+        break;
+      // If this is repeat of 'equal operator'...
+      case !this.memory.action && action === '=':
+        // Use the last operator and input to calculate.
+        this.handleCalculate(
           this.memory.lastAction,
-          inputNumber || this.memory.lastInput
+          inputNumber || this.memory.lastInput,
+          null
         );
-        this.finishOperation(result, null);
-      } else {
+        break;
+      // If the last operator was 'equal operator'...
+      case !this.memory.action:
+        // Remove the last operator because this is not a repeat operation.
         this.memory.lastAction = null;
+        // Save the new operator to use on calculate in next operation.
         this.memory.action = action;
-      }
-    } else {
-      const result = this.handleCalculate(
-        this.memory.action,
-        inputNumber || this.memory.data
-      );
-      if (action === '=') {
+        break;
+      // If this is 'equal operator'...
+      case action === '=':
+        // Save the last operator and last input in case repeating the 'equal operation'
         this.updateMemory('lastAction', this.memory.action);
         this.updateMemory('lastInput', inputNumber);
-        this.finishOperation(result, null);
-        return;
-      }
-
-      this.finishOperation(result, action);
+        // Calculate and display
+        this.handleCalculate(
+          this.memory.action,
+          inputNumber || this.memory.data,
+          null
+        );
+      // The default calculate operation.
+      default:
+        this.handleCalculate(
+          this.memory.action,
+          inputNumber || this.memory.data,
+          action
+        );
+        break;
     }
+  }
+  initOperation(inputNumber, action) {
+    this.createMemory(inputNumber, action);
+    this.updateDom(inputNumber);
   }
   createMemory(data, action) {
     this.memory = {
@@ -130,9 +148,10 @@ class Calculator {
       action
     };
   }
-  handleCalculate(action, secondValue) {
+  handleCalculate(action, secondValue, nextAction) {
     const operator = this.operations[action].bind(this);
-    return operator(secondValue);
+    const result = operator(secondValue);
+    this.finishOperation(result, nextAction);
   }
   finishOperation(result, nextAction) {
     this.updateMemory('data', result);
