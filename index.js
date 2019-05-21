@@ -77,7 +77,8 @@ class Calculator {
     this.input = '';
     this.operations = {
       '+': this.getSum,
-      '-': this.getSubtraction
+      '-': this.getSubtraction,
+      '÷': this.getDivision
     };
     this.inputScreen = new InputScreen();
     this.outputScreen = new OutputScreen();
@@ -117,13 +118,16 @@ class Calculator {
   }
   resetInput() {
     this.input = '';
-    this.inputScreen.updateScreen(this.input);
+    this.inputScreen.updateScreen(0);
   }
   getSum(data) {
     return this.memory.data + data;
   }
   getSubtraction(data) {
     return this.memory.data - data;
+  }
+  getDivision(data) {
+    return this.memory.data / data;
   }
 }
 const calculator = new Calculator();
@@ -132,7 +136,8 @@ const newEls = [
   new NumericButton(2),
   new NumericButton(3),
   new OperatorButton('+'),
-  new OperatorButton('-')
+  new OperatorButton('-'),
+  new OperatorButton('÷')
 ];
 newEls.forEach(function(el, i) {
   container.appendChild(el);
