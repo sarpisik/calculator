@@ -34,24 +34,26 @@ const buttons = {
       indexes: [46]
     }
   ],
-  numerics: [
-    {
-      value: DECIMAL,
-      indexes: [110, 190]
-    }
-  ]
+  numerics: []
 };
 // Init numeric numbers objects
+const digitNumLayout = [7, 8, 9, 4, 5, 6, 1, 2, 3, 0];
+
 for (
-  let num = 0, digitCode = 48, numPadCode = 96;
-  num < 10;
-  num++, digitCode++, numPadCode++
+  let num = 9, digitCode = 57, numPadCode = 105;
+  num >= 0;
+  num--, digitCode--, numPadCode--
 ) {
-  buttons.numerics.push({
+  const digitNumLayoutIndex = digitNumLayout.indexOf(num);
+  buttons.numerics[digitNumLayoutIndex] = {
     value: num,
     indexes: [digitCode, numPadCode]
-  });
+  };
 }
+buttons.numerics.push({
+  value: DECIMAL,
+  indexes: [110, 190]
+});
 
 const keyIndexList = {};
 
@@ -348,7 +350,6 @@ function renderButtons(container) {
           button = new ButtonType(value, indexes[0]);
         }
         renderDom(button, ButtonsContainer.element);
-        // button.setParent(ButtonsContainer.element);
 
         // update keyIndexList
         indexes.forEach(function(keyboardKey) {
