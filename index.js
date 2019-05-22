@@ -57,7 +57,7 @@ const buttons = {
 /*
  * We do loop from 9 to 0 over the numbers,
  * instead of hard coding to define
- * each number's values keyCodes numbers
+ * each number's values and keyCode numbers
  */
 
 for (
