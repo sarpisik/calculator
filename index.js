@@ -1,4 +1,3 @@
-// TODO: keyboard event handlers
 const ADD = '+',
   SUBTRACT = '-',
   MULTIPLY = 'x',
