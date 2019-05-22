@@ -122,7 +122,7 @@ class OperatorButton extends Button {
 }
 class RemoveButton extends Button {
   constructor() {
-    super(ALL_CLEAR.toUpperCase(), 'numeric');
+    super(ALL_CLEAR.toUpperCase(), null, 'numeric remove');
     this.toggleRemoveType();
 
     // Override inherited onClick event handler
@@ -143,14 +143,10 @@ class RemoveButton extends Button {
 class Calculator {
   constructor() {
     this.input = '';
-    this.operations = {
-      [ADD]: this.getSum,
-      [SUBTRACT]: this.getSubtraction,
-      [DIVIDE]: this.getDivision,
-      [MULTIPLY]: this.getMultiply,
-      [EQUAL]: this.getResult
-    };
+
+    // Create visual calculator
     initApp.call(this);
+
     // Keyboard inputs event listener
     window.addEventListener('keydown', this.addEntry.bind(this));
   }
@@ -236,9 +232,8 @@ class Calculator {
     this.memory[property] = value;
   }
   handleCalculate(operator, secondValue, nextOperator) {
-    const decimal = this.operations[operator].bind(this);
-
-    const result = Math.round(decimal(secondValue) * 100) / 100;
+    const decimalValue = this.getResult(operator, secondValue);
+    const result = Math.round(decimalValue * 100) / 100;
     this.finishOperation(result, nextOperator);
   }
   finishOperation(result, nextOperator) {
@@ -288,6 +283,21 @@ class Calculator {
     this.updateInputScreen(0);
   }
   // Math Operations
+  getResult(operator, data) {
+    switch (operator) {
+      case ADD:
+        return this.memory.data + data;
+      case SUBTRACT:
+        return this.memory.data - data;
+      case MULTIPLY:
+        return this.memory.data * data;
+      case DIVIDE:
+        return this.memory.data / data;
+
+      default:
+        return data;
+    }
+  }
   getSum(data) {
     return this.memory.data + data;
   }
@@ -300,9 +310,9 @@ class Calculator {
   getMultiply(data) {
     return this.memory.data * data;
   }
-  getResult(data) {
-    return data;
-  }
+  // getResult(data) {
+  //   return data;
+  // }
 }
 const calculator = new Calculator();
 
@@ -366,6 +376,3 @@ function renderDom(child, parent) {
 function setKeyIndexList(key, value) {
   keyIndexList[key] = value;
 }
-
-console.log(buttons);
-console.log(keyIndexList);
