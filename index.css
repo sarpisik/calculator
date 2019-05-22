@@ -174,7 +174,7 @@ body {
   background-color: #eee;
 }
 
-button[value='='] {
+.equal {
   background-image: linear-gradient(to bottom, #fe886a, #ff7033);
   grid-column: -2;
   grid-row: 2 / span 4;

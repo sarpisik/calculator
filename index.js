@@ -1,5 +1,61 @@
-let input = 0,
-  memory;
+// TODO: keyboard event handlers
+const ADD = '+',
+  SUBTRACT = '-',
+  MULTIPLY = 'x',
+  DIVIDE = '÷',
+  EQUAL = '=',
+  DECIMAL = '.',
+  ALL_CLEAR = 'ac',
+  CLEAR_ENTRY = 'ce';
+
+const buttons = {
+  operators: [
+    {
+      value: ADD,
+      indexes: [107]
+    },
+    {
+      value: SUBTRACT,
+      indexes: [109]
+    },
+    {
+      value: MULTIPLY,
+      indexes: [106]
+    },
+    {
+      value: DIVIDE,
+      indexes: [111]
+    },
+    {
+      value: EQUAL,
+      indexes: [13]
+    },
+    {
+      value: ALL_CLEAR,
+      indexes: [46]
+    }
+  ],
+  numerics: [
+    {
+      value: DECIMAL,
+      indexes: [110, 190]
+    }
+  ]
+};
+// Init numeric numbers objects
+for (
+  let num = 0, digitCode = 48, numPadCode = 96;
+  num < 10;
+  num++, digitCode++, numPadCode++
+) {
+  buttons.numerics.push({
+    value: num,
+    indexes: [digitCode, numPadCode]
+  });
+}
+
+const keyIndexList = {};
+
 class InitializeElement {
   constructor(type, classes) {
     this.createElementWithClass(type, classes);
@@ -40,46 +96,46 @@ class InputScreen extends Container {
   }
 }
 class Button extends InitializeElement {
-  constructor(value, buttonType) {
+  constructor(value, keyIndex, buttonType) {
     super('button', `btn f-1 ${buttonType}`);
-    this.element.value = value;
+    this.element.keyCode = keyIndex;
     this.element.innerText = value;
+    this.element.addEventListener('click', this.onClick);
+  }
+
+  onClick({ target }) {
+    calculator.addEntry(target);
   }
 }
 class NumericButton extends Button {
-  constructor(value) {
-    super(value, 'numeric');
-    this.element.addEventListener('click', this.onClick.bind(this));
-  }
-
-  onClick() {
-    calculator.addInput(this.element.value);
+  constructor(value, keyIndex) {
+    super(value, keyIndex, 'numeric');
   }
 }
 class OperatorButton extends Button {
-  constructor(operator) {
-    super(operator, 'operator');
+  constructor(operator, keyIndex) {
+    super(operator, keyIndex, 'operator');
     this.operator = operator;
-    this.element.addEventListener('click', this.onClick.bind(this));
-  }
-
-  onClick() {
-    calculator.handleOperation(this.operator);
+    this.operator === EQUAL && this.element.classList.add('equal');
   }
 }
 class RemoveButton extends Button {
   constructor() {
-    super('AC', 'numeric');
-    this.removeType = 'ac';
-    this.element.addEventListener('click', this.onClick.bind(this));
+    super(ALL_CLEAR.toUpperCase(), 'numeric');
+    this.toggleRemoveType();
+
+    // Override inherited onClick event handler
+    this.element.onClick = this.onClick;
   }
 
   onClick() {
-    this.removeType === 'ac' ? calculator.clearAll() : calculator.clearEntry();
+    this.dataset.removeType === ALL_CLEAR
+      ? calculator.clearAll()
+      : calculator.clearEntry();
   }
 
-  toggleRemoveType(type = 'ac') {
-    this.removeType = type;
+  toggleRemoveType(type = ALL_CLEAR) {
+    this.element.dataset.removeType = type;
     this.element.innerText = type.toUpperCase();
   }
 }
@@ -87,65 +143,41 @@ class Calculator {
   constructor() {
     this.input = '';
     this.operations = {
-      '+': this.getSum,
-      '-': this.getSubtraction,
-      '÷': this.getDivision,
-      x: this.getMultiply,
-      '=': this.getResult
+      [ADD]: this.getSum,
+      [SUBTRACT]: this.getSubtraction,
+      [DIVIDE]: this.getDivision,
+      [MULTIPLY]: this.getMultiply,
+      [EQUAL]: this.getResult
     };
-    this.container = document.getElementById('main');
-    this.screensContainer = new Container('screens');
-    this.screensContainer.setParent(this.container);
-    this.buttonsContainer = new Container('buttons');
-    this.buttonsContainer.setParent(this.container);
-
-    this.inputScreen = new InputScreen();
-    this.outputScreen = new OutputScreen();
-    this.removeButton = new RemoveButton();
-
-    this.screens = [this.inputScreen, this.outputScreen];
-    this.buttons = [
-      new OperatorButton('+'),
-      new OperatorButton('-'),
-      new OperatorButton('x'),
-      new OperatorButton('÷'),
-      new OperatorButton('='),
-      new NumericButton(0),
-      new NumericButton(1),
-      new NumericButton(2),
-      new NumericButton(3),
-      new NumericButton(4),
-      new NumericButton(5),
-      new NumericButton(6),
-      new NumericButton(7),
-      new NumericButton(8),
-      new NumericButton(9),
-      new NumericButton('.'),
-      this.removeButton
-    ];
-    this.renderDom(this.screens, this.screensContainer.element);
-    this.renderDom(this.buttons, this.buttonsContainer.element);
-  }
-  renderDom(children, parent) {
-    children.forEach(function({ element }) {
-      parent.appendChild(element);
-    });
+    initApp.call(this);
+    // Keyboard inputs event listener
+    window.addEventListener('keydown', this.addEntry.bind(this));
   }
   updateDom(result) {
     this.updateOutputScreen(result);
     this.resetInput();
   }
-  handleOperation(action) {
+  addEntry({ keyCode }) {
+    const action = this.getActionTypeByKeyCode(keyCode);
+    if (isNaN(action)) {
+      if (action === DECIMAL) return this.addInput(action);
+      if (action === ALL_CLEAR) return this.removeButton.element.onClick();
+      return this.handleOperatorInput(action);
+    }
+
+    return this.addInput(action);
+  }
+  handleOperatorInput(operator) {
     const inputNumber = parseFloat(this.input);
     switch (true) {
       // If this is initial operation...
       case !this.memory:
         // Create new memory.
-        this.initOperation(inputNumber || 0, action);
+        this.initOperation(inputNumber || 0, operator);
         break;
 
       // If this is repeat of 'equal operator'...
-      case !this.memory.action && action === '=':
+      case !this.memory.operator && operator === EQUAL:
         // Use the last operator and input to calculate.
         this.handleCalculate(
           this.memory.lastAction,
@@ -155,21 +187,21 @@ class Calculator {
         break;
 
       // If the last operator was 'equal operator'...
-      case !this.memory.action:
+      case !this.memory.operator:
         // Remove the last operator because this is not a repeat operation.
         this.memory.lastAction = null;
         // Save the new operator to use on calculate in next operation.
-        this.memory.action = action;
+        this.memory.operator = operator;
         break;
 
       // If this is 'equal operator'...
-      case action === '=':
+      case operator === EQUAL:
         // Save the last operator and last input in case repeating the 'equal operation'
-        this.updateMemory('lastAction', this.memory.action);
+        this.updateMemory('lastAction', this.memory.operator);
         this.updateMemory('lastInput', inputNumber);
         // Calculate and display
         this.handleCalculate(
-          this.memory.action,
+          this.memory.operator,
           inputNumber || this.memory.data,
           null
         );
@@ -178,36 +210,39 @@ class Calculator {
       // The default calculate operation.
       default:
         this.handleCalculate(
-          this.memory.action,
+          this.memory.operator,
           inputNumber || this.memory.data,
-          action
+          operator
         );
         break;
     }
+  }
+  getActionTypeByKeyCode(keyCode) {
+    return keyIndexList[keyCode];
   }
   initOperation(inputNumber, action) {
     this.createMemory(inputNumber, action);
     this.updateDom(inputNumber);
   }
   // Memory
-  createMemory(data, action) {
+  createMemory(data, operator) {
     this.memory = {
       data,
-      action
+      operator
     };
   }
   updateMemory(property, value) {
     this.memory[property] = value;
   }
-  handleCalculate(action, secondValue, nextAction) {
-    const operator = this.operations[action].bind(this);
+  handleCalculate(operator, secondValue, nextOperator) {
+    const decimal = this.operations[operator].bind(this);
 
-    const result = Math.round(operator(secondValue) * 100) / 100;
-    this.finishOperation(result, nextAction);
+    const result = Math.round(decimal(secondValue) * 100) / 100;
+    this.finishOperation(result, nextOperator);
   }
-  finishOperation(result, nextAction) {
+  finishOperation(result, nextOperator) {
     this.updateMemory('data', result);
-    this.updateMemory('action', nextAction);
+    this.updateMemory('operator', nextOperator);
     this.updateDom(result);
   }
   addInput(input) {
@@ -226,7 +261,7 @@ class Calculator {
         break;
     }
     // Toggle 'AC' button to 'CE'
-    this.toggleRemoveType('ce');
+    this.toggleRemoveType(CLEAR_ENTRY);
     this.updateInputScreen(this.input);
   }
   updateInputScreen(data) {
@@ -248,7 +283,7 @@ class Calculator {
   }
   resetInput() {
     this.input = '';
-    this.toggleRemoveType('ac');
+    this.toggleRemoveType(ALL_CLEAR);
     this.updateInputScreen(0);
   }
   // Math Operations
@@ -269,3 +304,68 @@ class Calculator {
   }
 }
 const calculator = new Calculator();
+
+function initApp() {
+  this;
+  const container = document.getElementById('main');
+  renderScreens.call(this, container);
+  renderButtons.call(this, container);
+}
+function renderScreens(container) {
+  this;
+  const ScreensContainer = new Container('screens');
+  this.inputScreen = new InputScreen();
+  this.outputScreen = new OutputScreen();
+
+  renderDom(ScreensContainer, container);
+  renderDom(this.inputScreen, ScreensContainer.element);
+  renderDom(this.outputScreen, ScreensContainer.element);
+}
+function renderButtons(container) {
+  const that = this;
+  const ButtonsContainer = new Container('buttons');
+  renderDom(ButtonsContainer, container);
+
+  for (const key in buttons) {
+    if (buttons.hasOwnProperty(key)) {
+      // Set button constructor class
+      const ButtonType = key === 'operators' ? OperatorButton : NumericButton;
+
+      /*
+       * Loop over each button object to create a button element
+       * and update keyIndexList as:
+       * - keyboard key numbers as key
+       * - button value as value
+       */
+      buttons[key].forEach(function({ value, indexes }) {
+        // create button element
+        let button;
+        if (value === ALL_CLEAR) {
+          // We need remove button in calculator class
+          // to manipulate its content and functionality
+          that.removeButton = new RemoveButton();
+          button = that.removeButton;
+        } else {
+          button = new ButtonType(value, indexes[0]);
+        }
+        renderDom(button, ButtonsContainer.element);
+        // button.setParent(ButtonsContainer.element);
+
+        // update keyIndexList
+        indexes.forEach(function(keyboardKey) {
+          setKeyIndexList(keyboardKey, value);
+        });
+      });
+    }
+  }
+}
+
+function renderDom(child, parent) {
+  child.setParent(parent);
+}
+function setKeyIndexList(key, value) {
+  keyIndexList[key] = value;
+}
+
+console.log(buttons);
+console.log(keyIndexList);
