@@ -77,14 +77,13 @@ for (
     indexes: [digitCode, numPadCode]
   };
 }
-// Point button objects
+// Point button object
 buttons.numerics.push({
   value: POINT,
   indexes: [110, 190]
 });
 
 // Class definitions
-
 class InitializeElement {
   constructor(type, classes) {
     this.createElementWithClass(type, classes);
@@ -101,23 +100,22 @@ class InitializeElement {
   }
 }
 class Container extends InitializeElement {
-  constructor(classes) {
+  constructor(classes, content = '') {
     super('div', classes);
+    this.updateContent(content);
   }
-  updateScreen(text) {
-    this.element.innerText = text;
+  updateContent(content) {
+    this.element.innerText = content;
   }
 }
 class OutputScreen extends Container {
   constructor() {
-    super('output-screen');
-    this.updateScreen(0);
+    super('output-screen', 0);
   }
 }
 class InputScreen extends Container {
   constructor() {
-    super('input-screen');
-    this.updateScreen(0);
+    super('input-screen', 0);
   }
 }
 class Button extends InitializeElement {
@@ -215,7 +213,7 @@ class Calculator {
     this.updateInputScreen(this.input);
   }
   updateInputScreen(data) {
-    this.inputScreen.updateScreen(data);
+    this.inputScreen.updateContent(data);
   }
   handleOperatorInput(operator) {
     // Convert from string number input
@@ -290,7 +288,7 @@ class Calculator {
     this.resetInputAndScreen();
   }
   updateOutputScreen(data) {
-    this.outputScreen.updateScreen(data);
+    this.outputScreen.updateContent(data);
   }
   handleCalculate(operator, latestNumber, nextOperator) {
     // Do math and return value
