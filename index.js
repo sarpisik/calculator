@@ -85,8 +85,9 @@ buttons.numerics.push({
 
 // Class definitions
 class InitializeElement {
-  constructor(type, classes) {
+  constructor(type, classes, content = '') {
     this.createElementWithClass(type, classes);
+    this.updateContent(content);
   }
   createElementWithClass(type, classes) {
     this.createElement(type);
@@ -95,17 +96,16 @@ class InitializeElement {
   createElement(type) {
     this.element = document.createElement(type);
   }
+  updateContent(content) {
+    this.element.innerText = content;
+  }
   setParent(parent) {
     parent.appendChild(this.element);
   }
 }
 class Container extends InitializeElement {
-  constructor(classes, content = '') {
-    super('div', classes);
-    this.updateContent(content);
-  }
-  updateContent(content) {
-    this.element.innerText = content;
+  constructor(classes, content) {
+    super('div', classes, content);
   }
 }
 class OutputScreen extends Container {
@@ -120,9 +120,8 @@ class InputScreen extends Container {
 }
 class Button extends InitializeElement {
   constructor(value, keyIndex, buttonType) {
-    super('button', `btn f-1 ${buttonType}`);
+    super('button', `btn ${buttonType}`, value);
     this.element.keyCode = keyIndex;
-    this.element.innerText = value;
     this.element.addEventListener('click', this.onClick);
   }
   onClick({ target }) {
@@ -137,30 +136,42 @@ class NumericButton extends Button {
 class OperatorButton extends Button {
   constructor(operator, keyIndex) {
     super(operator, keyIndex, 'operator');
-    this.operator = operator;
-    this.operator === EQUAL && this.element.classList.add('equal');
+    operator === EQUAL && this.element.classList.add('equal');
   }
 }
 class RemoveButton extends Button {
   constructor() {
     super(ALL_CLEAR.toUpperCase(), null, 'numeric remove');
+    // Set button init content 'AC'
     this.toggleRemoveType();
 
     // Override inherited onClick event handler
     this.element.onClick = this.onClick;
   }
   onClick() {
+    // If the button content is 'AC', clear everything.
+    // Else, clear input screen only.
     this.dataset.removeType === ALL_CLEAR
       ? calculator.resetCalculator()
       : calculator.clearEntry();
   }
   toggleRemoveType(type = ALL_CLEAR) {
     this.element.dataset.removeType = type;
-    this.element.innerText = type.toUpperCase();
+    this.updateContent(type.toUpperCase());
   }
 }
 
-// Calculator Application
+/*
+ * Calculator class is the brain of the application.
+ * It takes inputs and use its logic through methods
+ * on create output and display at DOM.
+ * -------------------------------------------------
+ * It initializes all the above class instances and
+ * manages these classes to manipulate DOM:
+ * Screens managements => InputScreen, OutputScreen.
+ * Input managements => NumericButton, OperatorButton
+ * and RemoveButton.
+ */
 class Calculator {
   constructor() {
     // Store the input value of click or keydown events
@@ -371,10 +382,10 @@ function renderButtons(container) {
 
     /*
      * Loop over each button object of button type
-     * to create the button element
-     * and update keyIndexList as:
-     * - keyboard keyCodes as key
-     * - button value as value
+     * to create the button element and update
+     * keyIndexList as:
+     * - key = keyboard keyCodes
+     * - value = button value
      */
     buttons[key].forEach(function({ value, indexes }) {
       let button;
