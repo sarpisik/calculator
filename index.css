@@ -12,6 +12,12 @@ html {
 
 body {
   margin: 0;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 
 /* Responsive Images */
@@ -204,19 +210,6 @@ body {
   grid-row: 5;
   -ms-grid-column: 3;
   grid-column: 3;
-}
-
-/* Global Classes */
-.flex {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-}
-
-.v-center {
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
 }
 
 @media only screen and (min-width: 500px) {

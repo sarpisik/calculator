@@ -162,9 +162,9 @@ class RemoveButton extends Button {
 }
 
 /*
- * Calculator class is the brain of the application.
- * It takes inputs and use its logic through methods
- * on create output and display at DOM.
+ * The calculation class is the brain of the application.
+ * It overcomes taking the inputs, calculating the output
+ * and displaying the result.
  * -------------------------------------------------
  * It initializes all the above class instances and
  * manages these classes to manipulate DOM:
